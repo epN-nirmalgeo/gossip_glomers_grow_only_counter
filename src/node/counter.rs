@@ -79,6 +79,29 @@ pub async fn process_message(request: Message, node: Node) {
             let response = generate_response(&request, MessageType::InitOk);
             let response = serde_json::to_string(&response).unwrap();
             println!("{}", response);
+
+            // request replicate from a random node other than itself
+            for dest in vec!["n0", "n1", "n2", "n3"] {
+                if node.id != dest {
+                    let mut request = generate_response(&request, MessageType::RequestReplication);
+                    request.src = node.id.to_owned();
+                    request.dest = dest.to_string();
+                    let request = serde_json::to_string(&request).unwrap();
+                    eprintln!("{}", request);
+                    println!("{}", request);
+                    break;
+                }
+            }
+        }
+
+        MessageType::RequestReplication => {
+            let node = node.lock().unwrap();
+            let mut response = generate_response(&request, MessageType::Replicate);
+            response.src = request.dest;
+            response.dest = request.src;
+            response.body.message_params.insert("value".to_owned(), json!(node.counter));
+            let response = serde_json::to_string(&response).unwrap();
+            println!("{}", response);
         }
 
         MessageType::Read => {

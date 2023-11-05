@@ -17,10 +17,8 @@ pub enum MessageType {
     Read,
     #[serde(rename = "read_ok")]
     ReadOk,
-    #[serde(rename = "request_replication")]
-    RequestReplication,
-    #[serde(rename = "replicate")]
-    Replicate,
+    #[serde(rename = "gossip")]
+    Gossip,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

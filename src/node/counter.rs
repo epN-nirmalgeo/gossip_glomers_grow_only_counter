@@ -1,8 +1,6 @@
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use serde_json::json;
-use tokio::signal;
-use tokio::time::{sleep, Duration};
 use super::message::{Message, MessageType, MessageBody};
 
 pub struct CounterNode {
@@ -46,7 +44,7 @@ fn generate_response(request: &Message, response_type: MessageType) -> Message {
     response
 }
 
-async fn gossip(node: &Arc<Mutex<CounterNode>>) {
+pub async fn gossip(node: &Arc<Mutex<CounterNode>>) {
     let node = node.lock().unwrap();
     let counter = node.counter.lock().unwrap();
     for dest in &node.nodes {
@@ -63,26 +61,8 @@ async fn gossip(node: &Arc<Mutex<CounterNode>>) {
         let gossip = serde_json::to_string(&gossip).unwrap();
         println!("{}", gossip);
     }
-
-    let _ = sleep(Duration::from_millis(1000));
 }
 
-pub async fn gossip_handler(node: Arc<Mutex<CounterNode>>) {
-
-    loop {
-        tokio::select! {
-            _ = signal::ctrl_c() => {
-                eprintln!("break gossip");
-                return;
-            }
-            _ = gossip(&node) => {
-                //eprintln!("proceed with gossip");
-            }
-
-        }
-    }
-
-}
 
 pub async fn process_message(request: Message, node: Arc<Mutex<CounterNode>>) {
 
